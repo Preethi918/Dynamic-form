@@ -1,0 +1,122 @@
+{
+  "title": "Registration Form",
+  "type": "object",
+  "properties": {
+    "firstName": {
+      "type": "string",
+      "title": "First Name",
+      "minLength": 2
+    },
+    "lastName": {
+      "type": "string",
+      "title": "Last Name",
+      "minLength": 2
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "title": "Email"
+    },
+    "age": {
+      "type": "integer",
+      "title": "Age",
+      "minimum": 18
+    }
+import React, { useState } from 'react';
+
+// Function to generate form elements based on JSON Schema
+function DynamicForm({ schema, onSubmit }) {
+  const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
+  
+  const handleChange = (e, field) => {
+    const value = e.target.value;
+    setFormData(prevData => ({
+      ...prevData,
+      [field]: value,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Validation logic
+    const validationErrors = {};
+    schema.required.forEach(field => {
+      if (!formData[field]) {
+        validationErrors[field] = `${field} is required`;
+      }
+    });
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+    } else {
+      onSubmit(formData);
+    }
+  };
+
+  const getFieldStyle = (field) => {
+    return field.required ? { border: '2px solid red' } : { border: '2px solid gray' };
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <h2>{schema.title}</h2>
+
+      {Object.keys(schema.properties).map((field) => {
+        const fieldProps = schema.properties[field];
+        const isRequired = schema.required.includes(field);
+        const fieldError = errors[field];
+
+        return (
+          <div key={field} style={{ marginBottom: '20px' }}>
+            <label htmlFor={field}>{fieldProps.title}</label>
+            <input
+              id={field}
+              name={field}
+              type={fieldProps.type === 'integer' ? 'number' : 'text'}
+              value={formData[field] || ''}
+              onChange={(e) => handleChange(e, field)}
+              required={isRequired}
+              style={{ ...getFieldStyle(fieldProps), padding: '8px', width: '100%' }}
+            />
+            {fieldError && <span style={{ color: 'red', fontSize: '12px' }}>{fieldError}</span>}
+          </div>
+        );
+      })}
+
+      <button type="submit">Submit</button>
+    </form>
+  );
+}
+
+// Usage of the DynamicForm Component
+function App() {
+  const schema = {
+    title: "Registration Form",
+    type: "object",
+    properties: {
+      firstName: { type: "string", title: "First Name", minLength: 2 },
+      lastName: { type: "string", title: "Last Name", minLength: 2 },
+      email: { type: "string", format: "email", title: "Email" },
+      age: { type: "integer", title: "Age", minimum: 18 }
+    },
+    required: ["firstName", "lastName", "email"]
+  };
+
+  const handleSubmit = (data) => {
+    console.log("Form Submitted", data);
+  };
+
+  return (
+    <div>
+      <DynamicForm schema={schema} onSubmit={handleSubmit} />
+    </div>
+  );
+}
+
+export default App;
+
+  },
+  "required": ["firstName", "lastName", "email"]
+}
